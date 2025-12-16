@@ -1,5 +1,6 @@
 streamlit==1.28.0 
 pypdf2==3.0.1
-spacy==3.5.0  # ഒരു സ്ഥിരതയുള്ള spaCy പതിപ്പ്
-# spaCy മോഡൽ ലിങ്ക് ഒഴിവാക്കുന്നു, പകരം model.py കോൺഫിഗറേഷൻ ഉപയോഗിക്കുന്നു
-# അല്ലെങ്കിൽ, Streamlit-ൽ നേരിട്ട് ഇൻസ്റ്റാൾ ചെയ്യാനുള്ള നിർദ്ദേശങ്ങൾ നൽകുന്നു.
+spacy==3.7.1 # ഏറ്റവും പുതിയ സ്ഥിരതയുള്ള പതിപ്പ് ഉപയോഗിക്കുന്നു
+# Modeli-ന്റെ ഇൻസ്റ്റലേഷനും requirements.txt-ൽ നൽകാം
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz
+
