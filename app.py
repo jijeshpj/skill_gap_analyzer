@@ -3,13 +3,31 @@
 # = ============================================================================
 
 # 1. ആവശ്യമായ ലൈബ്രറികൾ ഇറക്കുമതി ചെയ്യുക
+import subprocess
+try:
+    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"], check=True)
+except:
+    pass # ഇൻസ്റ്റാൾ ചെയ്തില്ലെങ്കിൽ മുന്നോട്ട് പോകുക.
 import streamlit as st # Streamlit ലൈബ്രറി
 import PyPDF2
 import spacy
 import re
 import os
 from spacy.matcher import Matcher
+# ---------------------------------
+# spaCy മോഡൽ ലോഡ് ചെയ്യുന്നു
+@st.cache_resource # ഇത് മോഡൽ ഒരേയൊരു തവണ ലോഡ് ചെയ്യാൻ സഹായിക്കുന്നു
+def load_model():
+    try:
+        # നമ്മൾ requirements.txt വഴി ഇൻസ്റ്റാൾ ചെയ്ത മോഡൽ ഉപയോഗിക്കുന്നു
+        nlp = spacy.load("en_core_web_sm")
+        return nlp
+    except OSError:
+        st.error("SpaCy model 'en_core_web_sm' could not be loaded.")
+        return None
 
+nlp = load_model()
+# ---------------------------------
 # ---------------------------------
 # 2. ടൂൾ സെറ്റപ്പും സ്കിൽ ലിസ്റ്റും (ഗ്ലോബൽ വേരിയബിളുകൾ)
 # ---------------------------------
