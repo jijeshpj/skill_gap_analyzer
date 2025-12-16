@@ -1,5 +1,5 @@
 # ==============================================================================
-# Streamlit APP CODE (FINAL CLEAN VERSION - app.py)
+# Streamlit APP CODE (FINAL FIX: Re-introducing Subprocess for Model Download)
 # ==============================================================================
 
 # 1. ആവശ്യമായ ലൈബ്രറികൾ ഇറക്കുമതി ചെയ്യുക
@@ -7,7 +7,41 @@ import streamlit as st
 import PyPDF2
 import spacy
 import os
-from spacy.matcher import Matcher # Matcher ഉപയോഗിക്കുന്നില്ലെങ്കിലും ഇമ്പോർട്ട് നിലനിർത്തി
+from spacy.matcher import Matcher 
+import subprocess # ഇത് നിർബന്ധമായും ചേർക്കുക
+
+# ... (2. ടൂൾ സെറ്റപ്പും സ്കിൽ ലിസ്റ്റുകളും - മാറ്റമില്ല) ...
+
+# ---------------------------------
+# 3. spaCy മോഡൽ ലോഡിംഗ് (Installation on Demand)
+# ---------------------------------
+
+@st.cache_resource 
+def load_nlp_model():
+    """SpaCy മോഡൽ സുരക്ഷിതമായി ലോഡ് ചെയ്യുന്നു."""
+    try:
+        # 1. ആദ്യം ലോഡ് ചെയ്യാൻ ശ്രമിക്കുന്നു (ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ടെങ്കിൽ)
+        nlp = spacy.load("en_core_web_sm") 
+        return nlp
+    except OSError:
+        # 2. OSError വന്നാൽ, മോഡൽ ഡൗൺലോഡ് ചെയ്യാൻ ശ്രമിക്കുന്നു
+        st.warning("SpaCy model 'en_core_web_sm' not found. Attempting to download...")
+        try:
+            # സുരക്ഷാപരമായ കാരണങ്ങളാൽ ഇത് Streamlit Cloud തടഞ്ഞേക്കാം, എങ്കിലും ഇതാണ് ഏറ്റവും നല്ല പരിഹാരം
+            subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"], check=True)
+            
+            # 3. ഡൗൺലോഡ് ചെയ്ത ശേഷം വീണ്ടും ലോഡ് ചെയ്യാൻ ശ്രമിക്കുന്നു
+            nlp = spacy.load("en_core_web_sm")
+            st.success("SpaCy model downloaded and loaded successfully.")
+            return nlp
+        except Exception as e:
+            # 4. ഡൗൺലോഡ് പരാജയപ്പെട്ടാൽ
+            st.error(f"❌ Critical Error: Could not download or load SpaCy model. Please check the Streamlit logs for subprocess error.")
+            return None
+
+nlp = load_nlp_model() # ഒരു തവണ മാത്രം മോഡൽ ലോഡ് ചെയ്യുന്നു
+
+# ... (ബാക്കി കോഡുകൾ മാറ്റമില്ല) ...തി
 
 # ---------------------------------
 # 2. ടൂൾ സെറ്റപ്പും സ്കിൽ ലിസ്റ്റുകളും
@@ -180,3 +214,4 @@ if jd_file and resume_file:
         st.error("Analysis Failed. Cannot proceed without the SpaCy model.")
     else:
         st.warning("Please upload valid files to start the analysis.")
+
