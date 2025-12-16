@@ -1,0 +1,18 @@
+Job Title: Junior Data Analyst / Data Scientist Intern
+
+We are seeking a highly motivated individual to join our Analytics team. The ideal candidate should possess strong foundational skills in data analysis and programming.
+
+Required Technical Skills:
+1. Programming Languages: Must be proficient in **Python** (for data manipulation and analysis).
+2. Database: Experience with **SQL** for querying and managing data is mandatory.
+3. Cloud Platforms: Basic knowledge of **AWS** (Amazon Web Services) is a plus.
+4. Visualization: Familiarity with **Power BI** or Tableau for reporting.
+5. Machine Learning: Understanding of core concepts in **machine learning**.
+...
+Required Soft Skills:
+1. Excellent communication and presentation skills.
+2. Proven ability in problem solving.
+3. Experience in team environment, demonstrating teamwork.
+4. Ability to work with time management.
+5. Knowledge in Cloud Computing fundamentals.  <-- ഇത് AWS മാച്ച് ചെയ്യാൻ
+...
