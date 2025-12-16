@@ -1,47 +1,27 @@
 # ==============================================================================
-# Streamlit APP CODE (app.py)
-# = ============================================================================
+# Streamlit APP CODE (FINAL CLEAN VERSION - app.py)
+# ==============================================================================
 
 # 1. ആവശ്യമായ ലൈബ്രറികൾ ഇറക്കുമതി ചെയ്യുക
-import subprocess
-try:
-    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"], check=True)
-except:
-    pass # ഇൻസ്റ്റാൾ ചെയ്തില്ലെങ്കിൽ മുന്നോട്ട് പോകുക.
-import streamlit as st # Streamlit ലൈബ്രറി
+import streamlit as st
 import PyPDF2
 import spacy
-import re
 import os
-from spacy.matcher import Matcher
-# ---------------------------------
-# spaCy മോഡൽ ലോഡ് ചെയ്യുന്നു
-@st.cache_resource # ഇത് മോഡൽ ഒരേയൊരു തവണ ലോഡ് ചെയ്യാൻ സഹായിക്കുന്നു
-def load_model():
-    try:
-        # നമ്മൾ requirements.txt വഴി ഇൻസ്റ്റാൾ ചെയ്ത മോഡൽ ഉപയോഗിക്കുന്നു
-        nlp = spacy.load("en_core_web_sm")
-        return nlp
-    except OSError:
-        st.error("SpaCy model 'en_core_web_sm' could not be loaded.")
-        return None
+from spacy.matcher import Matcher # Matcher ഉപയോഗിക്കുന്നില്ലെങ്കിലും ഇമ്പോർട്ട് നിലനിർത്തി
 
-nlp = load_model()
 # ---------------------------------
+# 2. ടൂൾ സെറ്റപ്പും സ്കിൽ ലിസ്റ്റുകളും
 # ---------------------------------
-# 2. ടൂൾ സെറ്റപ്പും സ്കിൽ ലിസ്റ്റും (ഗ്ലോബൽ വേരിയബിളുകൾ)
-# ---------------------------------
-# നിങ്ങളുടെ സ്കിൽ ലിസ്റ്റുകളും മാപ്പിംഗുകളും ഇവിടെ ചേർക്കുക (മുമ്പത്തെ കോഡിൽ നിന്ന് കോപ്പി ചെയ്യുക)
 TECH_SKILLS = [
-    "python", "java", "sql", "aws", "azure", "docker", "kubernetes", 
-    "javascript", "html", "css", "mongodb", "react", "angular", "nlp", 
-    "machine learning", "deep learning", "tableau", "power bi", "hadoop", "c++",
-    "pandas", "numpy", "data analysis", "cloud computing"
+    "python", "java", "sql", "aws", "azure", "docker", "kubernetes", "javascript", 
+    "html", "css", "mongodb", "react", "angular", "nlp", "machine learning", 
+    "deep learning", "tableau", "power bi", "hadoop", "c++", "pandas", "numpy", 
+    "data analysis", "cloud computing"
 ]
 SOFT_SKILLS = [
-    "communication", "leadership", "teamwork", "problem solving", 
-    "time management", "creativity", "adaptability", "mentoring", 
-    "management", "agile", "scrum", "public speaking", "presentation"
+    "communication", "leadership", "teamwork", "problem solving", "time management", 
+    "creativity", "adaptability", "mentoring", "management", "agile", "scrum", 
+    "public speaking", "presentation"
 ]
 
 SKILL_MAPPING = {
@@ -57,26 +37,28 @@ SKILL_MAPPING = {
 
 ALL_SKILLS = [s.lower() for s in TECH_SKILLS + SOFT_SKILLS]
 
-# spaCy മോഡൽ ലോഡ് ചെയ്യുന്നു
-@st.cache_resource # ഇത് മോഡൽ ഒരേയൊരു തവണ ലോഡ് ചെയ്യാൻ സഹായിക്കുന്നു
-def load_model():
+# ---------------------------------
+# 3. spaCy മോഡൽ ലോഡിംഗ് (ഒരൊറ്റ തവണ മാത്രം)
+# ---------------------------------
+
+@st.cache_resource 
+def load_nlp_model():
+    """SpaCy മോഡൽ സുരക്ഷിതമായി ലോഡ് ചെയ്യുന്നു."""
     try:
-        nlp = spacy.load("en_core_web_sm")
+        # requirements.txt വഴി ഇൻസ്റ്റാൾ ചെയ്ത മോഡൽ ഉപയോഗിക്കുന്നു
+        nlp = spacy.load("en_core_web_sm") 
         return nlp
     except OSError:
-        # Streamlit Cloud-ൽ പ്രവർത്തിപ്പിക്കുമ്പോൾ മോഡൽ ഡൗൺലോഡ് ചെയ്യാനുള്ള സാധ്യത
-        # Streamlit-ന് ആവശ്യമായ "requirements.txt" ഫയലിലാണ് ഈ മോഡൽ ഉൾപ്പെടുത്തേണ്ടത്.
-        st.error("SpaCy model 'en_core_web_sm' not loaded. Check requirements.")
+        st.error("❌ SpaCy model 'en_core_web_sm' could not be loaded. Please check requirements.txt.")
         return None
 
-nlp = load_model()
+nlp = load_nlp_model() # ഒരു തവണ മാത്രം മോഡൽ ലോഡ് ചെയ്യുന്നു
 
 # ---------------------------------
-# 3. ഫംഗ്ഷനുകൾ (Jupyter-ൽ ഉപയോഗിച്ച അതേ ഫംഗ്ഷനുകൾ)
+# 4. ഫംഗ്ഷനുകൾ (Text Extraction, Skill Extraction, Comparison)
 # ---------------------------------
 
 def extract_text_from_pdf(uploaded_file):
-    # Streamlit-ൽ ഫയൽ അപ്‌ലോഡ് ചെയ്യുമ്പോൾ ഇത് file buffer ആയിരിക്കും
     text = ""
     try:
         reader = PyPDF2.PdfReader(uploaded_file)
@@ -86,18 +68,18 @@ def extract_text_from_pdf(uploaded_file):
                 text += page_text + "\n"
         return text
     except Exception as e:
-        st.error(f"Error reading PDF file: {e}")
+        st.error(f"❌ Error reading PDF file: {e}")
         return None
 
 def extract_skills_from_text(text, skill_list):
     if not nlp or not text:
         return set()
-    
+        
     processed_text = text.lower()
     doc = nlp(processed_text)
     raw_found_skills = set() 
     
-    # RAW EXTRACTION ലോജിക്ക്
+    # RAW EXTRACTION ലോജിക്ക് (Noun Chunks, Tokens, Phrase Matching)
     for chunk in doc.noun_chunks:
         chunk_text = chunk.text.lower()
         if chunk_text in skill_list:
@@ -123,12 +105,7 @@ def extract_skills_from_text(text, skill_list):
             
     return final_mapped_skills 
 
-# ---------------------------------
-# 5. Comparison Logic: താരതമ്യം ചെയ്യുക (ഇത് app.py-യിൽ ചേർക്കുക)
-# ---------------------------------
-
 def compare_skills(resume_skills, required_jd_skills):
-    # സെറ്റ് ഓപ്പറേഷനുകൾ ഉപയോഗിച്ച് താരതമ്യം
     matching_skills = resume_skills.intersection(required_jd_skills)
     missing_skills = required_jd_skills.difference(resume_skills)
     extra_skills = resume_skills.difference(required_jd_skills)
@@ -140,14 +117,13 @@ def compare_skills(resume_skills, required_jd_skills):
     }
 
 # ---------------------------------
-# 4. STREAMLIT UI/MAIN APP
+# 5. STREAMLIT UI/MAIN APP
 # ---------------------------------
 
 st.set_page_config(page_title="Skill Gap Analyzer", layout="wide")
 st.title("🤖 NLP Skill Gap Analyzer")
 st.markdown("Upload a Job Description (TXT) and a Resume (PDF) to get a skill gap report.")
 
-# ഇൻപുട്ട് ഏരിയകൾ
 col1, col2 = st.columns(2)
 
 with col1:
@@ -160,7 +136,7 @@ if jd_file and resume_file:
     try:
         jd_text = jd_file.read().decode('utf-8')
     except Exception as e:
-        st.error(f"Error reading JD file: {e}")
+        st.error(f"❌ Error reading JD file: {e}")
         jd_text = ""
         
     # Resume Text വായിക്കുന്നു
@@ -168,18 +144,10 @@ if jd_file and resume_file:
 
     if jd_text and resume_text:
         with st.spinner("Analyzing skills..."):
-            # A. JD Skills
             jd_skills_required = extract_skills_from_text(jd_text, ALL_SKILLS)
-            
-            # B. Resume Skills
             resume_skills_got = extract_skills_from_text(resume_text, ALL_SKILLS)
-            
-            # C. Comparison
             gap_report = compare_skills(resume_skills_got, jd_skills_required)
 
-        # -------------------
-        # റിപ്പോർട്ട് ഔട്ട്പുട്ട് (Report Output)
-        # -------------------
         st.success("✅ Analysis Complete!")
         
         # 1. Summary Metrics
@@ -206,5 +174,3 @@ if jd_file and resume_file:
 
     else:
         st.warning("Please upload valid files to start the analysis.")
-
-# ==============================================================================
