@@ -13,6 +13,8 @@ st.set_page_config(page_title="Skill Gap Analyzer", layout="wide")
 
 # ... (Import കമാൻഡുകളും st.set_page_config() ഉം ശരിയാണ്) ...
 
+# ... (Import കമാൻഡുകളും st.set_page_config() ഉം ശരിയാണ്) ...
+
 # ---------------------------------
 # 3. spaCy മോഡൽ ലോഡിംഗ് (Download on Demand)
 # ---------------------------------
