@@ -8,7 +8,7 @@ import PyPDF2
 import spacy
 import os
 from spacy.matcher import Matcher 
-import subprocess # ഇത് നിർബന്ധമായും ചേർക്കുക
+
 
 # ... (2. ടൂൾ സെറ്റപ്പും സ്കിൽ ലിസ്റ്റുകളും - മാറ്റമില്ല) ...
 
@@ -20,24 +20,12 @@ import subprocess # ഇത് നിർബന്ധമായും ചേർക�
 def load_nlp_model():
     """SpaCy മോഡൽ സുരക്ഷിതമായി ലോഡ് ചെയ്യുന്നു."""
     try:
-        # 1. ആദ്യം ലോഡ് ചെയ്യാൻ ശ്രമിക്കുന്നു (ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ടെങ്കിൽ)
+        # റിപ്പോസിറ്ററിയിൽ നിന്ന് നേരിട്ട് ലോഡ് ചെയ്യാൻ ശ്രമിക്കുന്നു
         nlp = spacy.load("en_core_web_sm") 
         return nlp
     except OSError:
-        # 2. OSError വന്നാൽ, മോഡൽ ഡൗൺലോഡ് ചെയ്യാൻ ശ്രമിക്കുന്നു
-        st.warning("SpaCy model 'en_core_web_sm' not found. Attempting to download...")
-        try:
-            # സുരക്ഷാപരമായ കാരണങ്ങളാൽ ഇത് Streamlit Cloud തടഞ്ഞേക്കാം, എങ്കിലും ഇതാണ് ഏറ്റവും നല്ല പരിഹാരം
-            subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"], check=True)
-            
-            # 3. ഡൗൺലോഡ് ചെയ്ത ശേഷം വീണ്ടും ലോഡ് ചെയ്യാൻ ശ്രമിക്കുന്നു
-            nlp = spacy.load("en_core_web_sm")
-            st.success("SpaCy model downloaded and loaded successfully.")
-            return nlp
-        except Exception as e:
-            # 4. ഡൗൺലോഡ് പരാജയപ്പെട്ടാൽ
-            st.error(f"❌ Critical Error: Could not download or load SpaCy model. Please check the Streamlit logs for subprocess error.")
-            return None
+        st.error("❌ Critical Error: SpaCy model 'en_core_web_sm' not found in the repository path.")
+        return None
 
 nlp = load_nlp_model() # ഒരു തവണ മാത്രം മോഡൽ ലോഡ് ചെയ്യുന്നു
 
@@ -214,4 +202,5 @@ if jd_file and resume_file:
         st.error("Analysis Failed. Cannot proceed without the SpaCy model.")
     else:
         st.warning("Please upload valid files to start the analysis.")
+
 
