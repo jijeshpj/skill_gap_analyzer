@@ -49,7 +49,8 @@ def load_nlp_model():
         nlp = spacy.load("en_core_web_sm") 
         return nlp
     except OSError:
-        st.error("❌ SpaCy model 'en_core_web_sm' could not be loaded. Please check requirements.txt.")
+        # മോഡൽ ലോഡ് ചെയ്യാൻ സാധിച്ചില്ലെങ്കിൽ പിഴവ് കാണിക്കുക
+        st.error("❌ SpaCy model 'en_core_web_sm' failed to load. Please ensure the model installation link in 'requirements.txt' is correct.")
         return None
 
 nlp = load_nlp_model() # ഒരു തവണ മാത്രം മോഡൽ ലോഡ് ചെയ്യുന്നു
@@ -72,6 +73,7 @@ def extract_text_from_pdf(uploaded_file):
         return None
 
 def extract_skills_from_text(text, skill_list):
+    # nlp മോഡൽ ലോഡ് ചെയ്തില്ലെങ്കിൽ റൺ ചെയ്യുന്നത് ഒഴിവാക്കുക
     if not nlp or not text:
         return set()
         
@@ -142,7 +144,8 @@ if jd_file and resume_file:
     # Resume Text വായിക്കുന്നു
     resume_text = extract_text_from_pdf(resume_file)
 
-    if jd_text and resume_text:
+    # മോഡൽ വിജയകരമായി ലോഡ് ചെയ്താൽ മാത്രം വിശകലനം തുടങ്ങുക
+    if nlp and jd_text and resume_text:
         with st.spinner("Analyzing skills..."):
             jd_skills_required = extract_skills_from_text(jd_text, ALL_SKILLS)
             resume_skills_got = extract_skills_from_text(resume_text, ALL_SKILLS)
@@ -172,5 +175,8 @@ if jd_file and resume_file:
         st.subheader(f"⭐ Extra Skills (Not required: {len(gap_report['Extra Skills'])})")
         st.code(", ".join(sorted(list(gap_report['Extra Skills']))))
 
+    elif not nlp:
+        # മോഡൽ ലോഡ് ചെയ്യാൻ പറ്റിയില്ലെങ്കിൽ
+        st.error("Analysis Failed. Cannot proceed without the SpaCy model.")
     else:
         st.warning("Please upload valid files to start the analysis.")
